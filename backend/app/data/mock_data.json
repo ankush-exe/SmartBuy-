@@ -1,0 +1,154 @@
+{
+  "products": [
+    {
+      "title": "Apple iPhone 13 128GB - Midnight",
+      "price": 699.99,
+      "rating": 4.8,
+      "source": "MockStore A",
+      "url": "https://example-store-a.com/iphone-13",
+      "delivery": "2-3 days",
+      "reviews_count": 12450,
+      "in_stock": true
+    },
+    {
+      "title": "Apple iPhone 13 128GB - Blue",
+      "price": 679.99,
+      "rating": 4.7,
+      "source": "MockStore B",
+      "url": "https://example-store-b.com/iphone-13-blue",
+      "delivery": "1-2 days",
+      "reviews_count": 8920,
+      "in_stock": true
+    },
+    {
+      "title": "Apple iPhone 13 256GB - Starlight",
+      "price": 799.99,
+      "rating": 4.9,
+      "source": "MockStore A",
+      "url": "https://example-store-a.com/iphone-13-256",
+      "delivery": "3-5 days",
+      "reviews_count": 5430,
+      "in_stock": true
+    },
+    {
+      "title": "Samsung Galaxy S22 128GB",
+      "price": 599.99,
+      "rating": 4.6,
+      "source": "MockStore B",
+      "url": "https://example-store-b.com/galaxy-s22",
+      "delivery": "2-4 days",
+      "reviews_count": 9870,
+      "in_stock": true
+    },
+    {
+      "title": "Google Pixel 7 128GB",
+      "price": 549.99,
+      "rating": 4.5,
+      "source": "MockStore A",
+      "url": "https://example-store-a.com/pixel-7",
+      "delivery": "1-3 days",
+      "reviews_count": 6780,
+      "in_stock": false
+    },
+    {
+      "title": "OnePlus 11 256GB",
+      "price": 499.99,
+      "rating": 4.4,
+      "source": "MockStore B",
+      "url": "https://example-store-b.com/oneplus-11",
+      "delivery": "3-6 days",
+      "reviews_count": 3210,
+      "in_stock": true
+    },
+    {
+      "title": "Sony WH-1000XM5 Headphones",
+      "price": 349.99,
+      "rating": 4.8,
+      "source": "MockStore A",
+      "url": "https://example-store-a.com/sony-wh1000xm5",
+      "delivery": "1-2 days",
+      "reviews_count": 15670,
+      "in_stock": true
+    },
+    {
+      "title": "Apple AirPods Pro 2nd Gen",
+      "price": 249.99,
+      "rating": 4.7,
+      "source": "MockStore B",
+      "url": "https://example-store-b.com/airpods-pro-2",
+      "delivery": "1-2 days",
+      "reviews_count": 22300,
+      "in_stock": true
+    },
+    {
+      "title": "Bose QuietComfort 45",
+      "price": 279.99,
+      "rating": 4.6,
+      "source": "MockStore A",
+      "url": "https://example-store-a.com/bose-qc45",
+      "delivery": "2-4 days",
+      "reviews_count": 8900,
+      "in_stock": true
+    },
+    {
+      "title": "Samsung 65 QLED 4K TV",
+      "price": 1299.99,
+      "rating": 4.7,
+      "source": "MockStore B",
+      "url": "https://example-store-b.com/samsung-65-qled",
+      "delivery": "5-7 days",
+      "reviews_count": 4560,
+      "in_stock": true
+    },
+    {
+      "title": "LG C2 55 OLED TV",
+      "price": 1199.99,
+      "rating": 4.9,
+      "source": "MockStore A",
+      "url": "https://example-store-a.com/lg-c2-55",
+      "delivery": "5-10 days",
+      "reviews_count": 7890,
+      "in_stock": true
+    },
+    {
+      "title": "MacBook Air M2 8GB 256GB",
+      "price": 1099.99,
+      "rating": 4.8,
+      "source": "MockStore B",
+      "url": "https://example-store-b.com/macbook-air-m2",
+      "delivery": "2-4 days",
+      "reviews_count": 18900,
+      "in_stock": true
+    },
+    {
+      "title": "Dell XPS 15 Intel i7 16GB",
+      "price": 1399.99,
+      "rating": 4.5,
+      "source": "MockStore A",
+      "url": "https://example-store-a.com/dell-xps-15",
+      "delivery": "3-5 days",
+      "reviews_count": 5670,
+      "in_stock": true
+    },
+    {
+      "title": "Nike Air Max 270 Size 10",
+      "price": 129.99,
+      "rating": 4.4,
+      "source": "MockStore B",
+      "url": "https://example-store-b.com/nike-air-max-270",
+      "delivery": "3-5 days",
+      "reviews_count": 34500,
+      "in_stock": true
+    },
+    {
+      "title": "Adidas Ultraboost 22 Size 10",
+      "price": 139.99,
+      "rating": 4.6,
+      "source": "MockStore A",
+      "url": "https://example-store-a.com/adidas-ultraboost-22",
+      "delivery": "2-4 days",
+      "reviews_count": 28900,
+      "in_stock": true
+    }
+  ]
+}
