@@ -1,17 +1,25 @@
 import { useState, useMemo, useEffect } from 'react'
 import { AlertTriangle, FilterX } from 'lucide-react'
 import { useSearch } from '../hooks/useSearch'
+import { useAuth } from '../context/AuthContext'
+import { useLocation } from '../hooks/useLocation'
+import { useWishlist } from '../hooks/useWishlist'
 import HeroHeader from '../components/HeroHeader'
 import SearchBar from '../components/SearchBar'
 import RecentSearches from '../components/RecentSearches'
+import LocationPrompt from '../components/LocationPrompt'
 import ProductCard from '../components/ProductCard'
 import ExplanationBox from '../components/ExplanationBox'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import FilterSidebar from '../components/FilterSidebar'
 
 export default function Home() {
+  const { currentUser } = useAuth()
+  const { city } = useLocation()
+  const { wishlist, toggle: toggleWishlist } = useWishlist()
   const { search, loading, result, error } = useSearch()
   const [recentSearchRefreshKey, setRecentSearchRefreshKey] = useState(0)
+  const [lastQuery, setLastQuery] = useState('')
   
   const isMockSource = result && ['mock', 'fallback'].includes(result.data_source)
   const sourceLabel = isMockSource
@@ -110,9 +118,16 @@ export default function Home() {
   }, [filteredProducts, result, showBestPick])
 
   const handleSearch = async (query) => {
+    setLastQuery(query)
     await search(query)
     setRecentSearchRefreshKey((current) => current + 1)
   }
+
+  useEffect(() => {
+    if (lastQuery && city) {
+      search(lastQuery)
+    }
+  }, [city, lastQuery, search])
 
   return (
     <div className="min-h-screen bg-obsidian">
@@ -143,6 +158,7 @@ export default function Home() {
         {/* Search */}
         <div className="mb-10 max-w-4xl mx-auto">
           <SearchBar onSearch={handleSearch} loading={loading} />
+          {currentUser ? <LocationPrompt /> : null}
           <RecentSearches
             onSearch={handleSearch}
             refreshKey={recentSearchRefreshKey}
@@ -218,6 +234,8 @@ export default function Home() {
                           rank={1}
                           isBest
                           style={{ animationDelay: '0ms' }}
+                          wishlist={wishlist}
+                          toggleWishlist={toggleWishlist}
                         />
                       </div>
                     </div>
@@ -254,6 +272,8 @@ export default function Home() {
                           rank={i + (showBestPick ? 2 : 1)}
                           isBest={false}
                           style={{ animationDelay: `${i * 40}ms` }}
+                          wishlist={wishlist}
+                          toggleWishlist={toggleWishlist}
                         />
                       ))}
                     </div>

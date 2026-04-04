@@ -14,6 +14,7 @@ from firebase_admin import auth as firebase_auth, firestore
 from pydantic import BaseModel, field_validator
 
 from app.services.currency import DEFAULT_CURRENCY, get_usd_to_inr_rate
+from app.services.delivery_service import estimate_delivery
 from app.services.normalizer import normalize_products
 from app.services.matcher import match_products
 from app.services.ai_agent import run_ai_decision
@@ -88,6 +89,31 @@ class HistoryPayload(BaseModel):
         return v
 
 
+class LocationPayload(BaseModel):
+    city: str
+
+    @field_validator("city")
+    @classmethod
+    def city_must_not_be_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("city must not be empty")
+        if len(v) > 120:
+            raise ValueError("city too long (max 120 chars)")
+        return v
+
+
+class WishlistItem(BaseModel):
+    product_id: str
+    title: str
+    price: float
+    currency: str = "INR"
+    thumbnail: str = ""
+    url: str = ""
+    query: str = ""
+    source: str = ""
+
+
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
@@ -102,6 +128,10 @@ def _history_collection(uid: str):
 
 def _feed_collection(uid: str):
     return firestore.client().collection("users").document(uid).collection("feed_cache")
+
+
+def _user_doc(uid: str):
+    return firestore.client().collection("users").document(uid)
 
 
 def _serialize_timestamp(value: Any) -> str:
@@ -126,6 +156,33 @@ def get_verified_uid(authorization: str | None = Header(default=None)) -> str:
         raise HTTPException(status_code=401, detail="Invalid token") from exc
     except Exception as exc:
         raise HTTPException(status_code=401, detail="Token verification failed") from exc
+
+
+def get_optional_uid(authorization: str | None = Header(default=None)) -> str | None:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+
+    token = authorization.removeprefix("Bearer ").strip()
+    try:
+        decoded = firebase_auth.verify_id_token(token)
+        return decoded["uid"]
+    except Exception as exc:
+        logger.info("Optional token verification failed: %s", exc)
+        return None
+
+
+def _get_saved_city(uid: str | None) -> str:
+    if not uid:
+        return ""
+    try:
+        doc = _user_doc(uid).get()
+        if not doc.exists:
+            return ""
+        payload = doc.to_dict() or {}
+        return str(payload.get("city", "")).strip()
+    except Exception as exc:
+        logger.info("Failed to load saved city for uid=%s: %s", uid, exc)
+        return ""
 
 
 def _get_personalized_suggestions(uid: str, query: str, limit: int) -> list[str]:
@@ -350,6 +407,75 @@ async def save_search(
     return {"status": "ok"}
 
 
+@router.post("/user/location")
+async def save_location(
+    payload: LocationPayload,
+    uid: str = Depends(get_verified_uid),
+) -> Dict[str, str]:
+    city = payload.city.strip().title()
+    _user_doc(uid).set({"city": city}, merge=True)
+    return {"status": "saved", "city": city}
+
+
+@router.get("/user/location")
+async def get_location(uid: str = Depends(get_verified_uid)) -> Dict[str, str]:
+    city = _get_saved_city(uid)
+    return {"city": city}
+
+
+@router.post("/wishlist")
+async def add_to_wishlist(
+    item: WishlistItem,
+    uid: str = Depends(get_verified_uid),
+) -> Dict[str, str]:
+    try:
+        firestore.client().collection("users").document(uid) \
+            .collection("wishlist").document(item.product_id) \
+            .set({
+                "title": item.title,
+                "price": item.price,
+                "currency": item.currency,
+                "thumbnail": item.thumbnail,
+                "url": item.url,
+                "query": item.query,
+                "source": item.source,
+                "added_at": firestore.SERVER_TIMESTAMP,
+                "last_checked": firestore.SERVER_TIMESTAMP,
+                "last_price": item.price,
+            })
+    except Exception as exc:
+        logger.warning("[wishlist] Firestore write failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Failed to add wishlist item") from exc
+    return {"status": "added"}
+
+
+@router.delete("/wishlist/{product_id}")
+async def remove_from_wishlist(
+    product_id: str,
+    uid: str = Depends(get_verified_uid),
+) -> Dict[str, str]:
+    try:
+        firestore.client().collection("users").document(uid) \
+            .collection("wishlist").document(product_id).delete()
+    except Exception as exc:
+        logger.warning("[wishlist] Firestore delete failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Failed to remove wishlist item") from exc
+    return {"status": "removed"}
+
+
+@router.get("/wishlist")
+async def get_wishlist(uid: str = Depends(get_verified_uid)) -> Dict[str, list[Dict[str, Any]]]:
+    try:
+        docs = firestore.client().collection("users").document(uid) \
+            .collection("wishlist").stream()
+    except Exception as exc:
+        logger.warning("[wishlist] Firestore read failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Failed to load wishlist") from exc
+    return {
+        "wishlist": [{"id": doc.id, **doc.to_dict()} for doc in docs]
+    }
+
+
 @router.get("/history")
 async def get_history(uid: str = Depends(get_verified_uid)) -> Dict[str, list[Dict[str, Any]]]:
     try:
@@ -375,7 +501,10 @@ async def get_history(uid: str = Depends(get_verified_uid)) -> Dict[str, list[Di
     }
 
 @router.post("/search", response_model=SearchResponse)
-async def search(body: SearchRequest) -> SearchResponse:
+async def search(
+    body: SearchRequest,
+    uid: str | None = Depends(get_optional_uid),
+) -> SearchResponse:
     t0 = time.monotonic()
     query = body.query
     logger.info("Search request: '%s'", query)
@@ -409,6 +538,15 @@ async def search(body: SearchRequest) -> SearchResponse:
     logger.info("Matched %d ranked products for '%s'", len(top_products), query)
     if not top_products:
         raise HTTPException(status_code=404, detail="No matching products found for this query.")
+
+    city = _get_saved_city(uid)
+    if city:
+        for product in top_products:
+            product["delivery"] = estimate_delivery(
+                city=city,
+                source=str(product.get("source", "")),
+                price=float(product.get("price", 0) or 0),
+            )
 
     # ── Step 5: AI Decision ──────────────────────────────────────────────────
     ai_result = await run_ai_decision(top_products, query)

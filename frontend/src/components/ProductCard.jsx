@@ -1,5 +1,15 @@
 import { useState } from 'react'
 import { ExternalLink, ImageIcon, Star, Truck, Package, ShieldCheck } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+
+function createProductId(title = '', source = '') {
+  const value = `${title}-${source}`.trim().toLowerCase()
+  let hash = 0
+  for (let index = 0; index < value.length; index += 1) {
+    hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0
+  }
+  return `product_${Math.abs(hash).toString(36)}`
+}
 
 const formatPrice = (amount, currency = 'INR') =>
   new Intl.NumberFormat('en-IN', {
@@ -31,13 +41,36 @@ function StarRating({ rating }) {
   )
 }
 
-export default function ProductCard({ product, rank, isBest, style }) {
+export default function ProductCard({
+  product,
+  rank,
+  isBest,
+  style,
+  wishlist = new Set(),
+  toggleWishlist,
+}) {
+  const { currentUser } = useAuth()
   const [imageMissing, setImageMissing] = useState(false)
   const {
     title, price, currency, rating, source, url,
     delivery, reviews_count, in_stock, relevance_score, thumbnail, snippet
   } = product
+  const productId = product.product_id
+    || createProductId(product.title, product.source)
+  const productPayload = {
+    product_id: productId,
+    title: product.title || '',
+    price: product.price || 0,
+    currency: product.currency || 'INR',
+    thumbnail: product.thumbnail || '',
+    url: product.url || '',
+    query: product.query || '',
+    source: product.source || '',
+  }
+  const isWishlisted = wishlist.has(productId)
   const showImage = Boolean(thumbnail) && !imageMissing
+  const deliveryMeta = delivery && typeof delivery === 'object' ? delivery : null
+  const deliveryText = typeof delivery === 'string' ? delivery : null
 
   return (
     <article
@@ -50,6 +83,35 @@ export default function ProductCard({ product, rank, isBest, style }) {
         }
       `}
     >
+      {currentUser && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            toggleWishlist?.(productPayload)
+          }}
+          className="absolute top-3 right-3 z-10 rounded-full bg-black/40 p-1.5 backdrop-blur-sm transition-all hover:bg-black/60"
+          title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          <svg
+            className={`h-4 w-4 transition-all duration-200 ${
+              isWishlisted
+                ? 'scale-110 fill-red-500 text-red-500'
+                : 'fill-none text-gray-400'
+            }`}
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+            />
+          </svg>
+        </button>
+      )}
+
       {/* Best badge */}
       {isBest && (
         <div className="absolute -top-3 left-5 flex items-center gap-1.5
@@ -62,7 +124,7 @@ export default function ProductCard({ product, rank, isBest, style }) {
 
       {/* Rank badge */}
       {!isBest && (
-        <div className="absolute top-4 right-4 w-7 h-7 rounded-full bg-void border border-border
+        <div className="absolute top-4 right-14 w-7 h-7 rounded-full bg-void border border-border
           flex items-center justify-center text-xs text-text-muted font-mono">
           #{rank}
         </div>
@@ -110,6 +172,25 @@ export default function ProductCard({ product, rank, isBest, style }) {
         </span>
       </div>
 
+      {deliveryMeta && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 text-xs text-text-secondary">
+            <Truck className="h-3.5 w-3.5 text-sky-400" />
+            <span>{deliveryMeta.estimated_days}</span>
+          </div>
+
+          {deliveryMeta.free_delivery ? (
+            <span className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+              Free delivery
+            </span>
+          ) : null}
+
+          <span className="text-xs text-text-muted">
+            to {deliveryMeta.city}
+          </span>
+        </div>
+      )}
+
       {/* Rating */}
       <div className="mb-4">
         <StarRating rating={rating} />
@@ -122,10 +203,12 @@ export default function ProductCard({ product, rank, isBest, style }) {
 
       {/* Meta */}
       <div className="flex flex-wrap gap-3 mb-4 text-xs text-text-secondary">
-        <span className="flex items-center gap-1.5">
-          <Truck size={12} className="text-accent" />
-          {delivery}
-        </span>
+        {deliveryText ? (
+          <span className="flex items-center gap-1.5">
+            <Truck size={12} className="text-accent" />
+            {deliveryText}
+          </span>
+        ) : null}
         <span className={`flex items-center gap-1.5 ${in_stock ? 'text-emerald-400' : 'text-red-400'}`}>
           <Package size={12} />
           {in_stock ? 'In Stock' : 'Out of Stock'}

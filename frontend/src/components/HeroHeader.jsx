@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { Zap, LogOut, User, Mail, History } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Zap, LogOut, User, Mail, History, MapPin, Heart } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import HistoryPanel from './HistoryPanel'
+import { useLocation } from '../hooks/useLocation'
 
 export default function HeroHeader() {
+  const navigate = useNavigate()
   const { currentUser, logout } = useAuth()
+  const { city, reopenPrompt } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
@@ -15,6 +18,32 @@ export default function HeroHeader() {
       <div className="absolute top-0 right-0 flex items-center gap-4">
         {currentUser ? (
           <div className="flex items-center gap-3">
+            <div className="relative z-50">
+              <button
+                onClick={() => {
+                  reopenPrompt()
+                  setShowHistory(false)
+                  setMenuOpen(false)
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                title="Set delivery location"
+              >
+                <MapPin className="w-4 h-4" />
+                {city || 'Set location'}
+              </button>
+            </div>
+
+            <div className="relative z-50">
+              <button
+                onClick={() => navigate('/wishlist')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                title="Your wishlist"
+              >
+                <Heart className="w-4 h-4" />
+                Wishlist
+              </button>
+            </div>
+
             <div className="relative z-50">
               <button
                 onClick={() => {
@@ -106,19 +135,6 @@ export default function HeroHeader() {
         <span className="text-gold">AI decision-making</span>
       </p>
 
-      {/* Pipeline pills */}
-      <div className="flex flex-wrap justify-center gap-2 mt-6">
-        {['Query Parser', 'Google Shopping', 'Fallback Catalog', 'Matcher', 'AI Decision Engine'].map((step) => (
-          <span
-            key={step}
-            className="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full
-              bg-void border border-border text-text-muted font-mono"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-accent/60" />
-            {step}
-          </span>
-        ))}
-      </div>
     </header>
   )
 }

@@ -39,9 +39,16 @@ export function useSearch() {
     setError(null)
 
     try {
+      const headers = { 'Content-Type': 'application/json' }
+      let token = null
+      if (currentUser?.uid) {
+        token = await currentUser.getIdToken()
+        headers.Authorization = `Bearer ${token}`
+      }
+
       const res = await fetch(`${API_BASE}/search`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ query: trimmedQuery }),
       })
 
@@ -53,8 +60,7 @@ export function useSearch() {
       const data = await res.json()
       setResult(data)
 
-      if (currentUser?.uid) {
-        const token = await currentUser.getIdToken()
+      if (token) {
         await fetch(`${API_BASE}/history`, {
           method: 'POST',
           headers: {

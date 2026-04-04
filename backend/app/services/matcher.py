@@ -9,6 +9,22 @@ from typing import List, Dict, Any
 logger = logging.getLogger(__name__)
 
 
+DEVICE_KEYWORDS = {
+    "iphone", "samsung", "pixel", "oneplus", "realme", "redmi", "poco",
+    "oppo", "vivo", "nokia", "motorola", "macbook", "laptop", "ipad",
+    "tablet", "airpods", "watch", "tv", "monitor", "keyboard", "mouse"
+}
+
+ACCESSORY_KEYWORDS = {
+    "case", "cover", "protector", "screen guard", "tempered glass",
+    "charger", "cable", "adapter", "stand", "holder", "skin", "sticker",
+    "pouch", "sleeve", "bumper", "shell", "wallet", "flip cover",
+    "back cover", "screen protector", "power bank", "dock", "mount",
+    "strap", "band", "lens", "filter", "grip", "ring", "pop socket",
+    "wire", "earphone", "headphone", "stylus", "pen", "hub", "dongle"
+}
+
+
 def _tokenize(text: str) -> set:
     """Lowercase, split on non-alphanumeric chars, drop stop-words."""
     stop_words = {"the", "and", "for", "with", "from", "this", "that", "a", "an", "in", "of"}
@@ -19,6 +35,17 @@ def _tokenize(text: str) -> set:
 def _word_tokens(tokens: set[str]) -> set[str]:
     """Keep only tokens that contain at least one non-digit character."""
     return {token for token in tokens if not token.isdigit()}
+
+
+def _is_device_query(query_tokens: set) -> bool:
+    """Returns True if the query is clearly for a device, not an accessory."""
+    return bool(query_tokens & DEVICE_KEYWORDS)
+
+
+def _is_accessory(title: str) -> bool:
+    """Returns True if the product title looks like an accessory."""
+    title_lower = title.lower()
+    return any(word in title_lower for word in ACCESSORY_KEYWORDS)
 
 
 def _relevance_score(
@@ -73,11 +100,15 @@ def match_products(
         logger.info("No searchable keywords extracted from query '%s'", query)
         return []
     query_word_tokens = _word_tokens(query_tokens)
+    is_device_q = _is_device_query(query_tokens)
 
     candidates = []
     for p in products:
         title_tokens = _tokenize(p.get("title", ""))
         if not title_tokens:
+            continue
+
+        if is_device_q and _is_accessory(p.get("title", "")):
             continue
 
         word_overlap_count = len(query_word_tokens & _word_tokens(title_tokens))
