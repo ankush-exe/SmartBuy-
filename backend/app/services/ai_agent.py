@@ -1,6 +1,6 @@
 """
-ai_agent.py - AI Decision Engine using Anthropic Claude API.
-Sends top matched products to Claude and returns best pick + reasoning.
+ai_agent.py - AI Decision Engine using Google Gemini API.
+Sends top matched products to Gemini and returns best pick + reasoning.
 Falls back to rule-based decision if API key is missing.
 """
 import json
@@ -8,15 +8,12 @@ import logging
 import os
 from typing import List, Dict, Any
 
-import httpx
-
 from app.services.currency import format_inr_amount
+from app.services.gemini_service import ask_gemini
 
 logger = logging.getLogger(__name__)
 
-ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
-ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
-PLACEHOLDER_API_KEYS = {"your_anthropic_api_key_here"}
+PLACEHOLDER_API_KEYS = {"your_gemini_api_key_here"}
 
 
 # ---------------------------------------------------------------------------
@@ -92,38 +89,19 @@ async def run_ai_decision(
     query: str,
 ) -> Dict[str, Any]:
     """
-    Call Anthropic Claude to pick the best product and explain why.
-    Returns rule-based result if ANTHROPIC_API_KEY is not set.
+    Call Google Gemini to pick the best product and explain why.
+    Returns rule-based result if GEMINI_API_KEY is not set.
     """
-    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key or api_key in PLACEHOLDER_API_KEYS:
-        logger.info("ANTHROPIC_API_KEY not configured – using rule-based decision.")
+        logger.info("GEMINI_API_KEY not configured - using rule-based decision.")
         return _rule_based_decision(products)
 
     prompt = _build_prompt(products, query)
 
-    payload = {
-        "model": ANTHROPIC_MODEL,
-        "max_tokens": 512,
-        "messages": [{"role": "user", "content": prompt}],
-    }
-
-    headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-    }
-
     try:
-        timeout = httpx.Timeout(connect=3.0, read=15.0, write=10.0, pool=5.0)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.post(ANTHROPIC_API_URL, json=payload, headers=headers)
-            response.raise_for_status()
+        raw_text = ask_gemini(prompt)
 
-        data = response.json()
-        raw_text = data["content"][0]["text"].strip()
-
-        # Strip markdown code fences if present
         if raw_text.startswith("```"):
             raw_text = raw_text.split("```")[1]
             if raw_text.startswith("json"):
@@ -142,15 +120,13 @@ async def run_ai_decision(
         return {
             "best_product": best_product,
             "reasoning": reasoning,
-            "source": "claude-ai",
+            "source": "gemini-ai",
         }
 
-    except httpx.HTTPStatusError as e:
-        logger.error("Anthropic API HTTP error %s: %s", e.response.status_code, e.response.text)
-    except httpx.RequestError as e:
-        logger.error("Anthropic API request error: %s", e)
-    except (json.JSONDecodeError, KeyError, IndexError) as e:
-        logger.error("Failed to parse AI response: %s", e)
+    except (json.JSONDecodeError, KeyError, IndexError) as exc:
+        logger.error("Failed to parse Gemini response: %s", exc)
+    except Exception as exc:
+        logger.error("Gemini AI request failed: %s", exc)
 
-    logger.info("AI call failed – falling back to rule-based decision.")
+    logger.info("AI call failed - falling back to rule-based decision.")
     return _rule_based_decision(products)

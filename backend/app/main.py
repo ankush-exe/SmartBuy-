@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from app.routes.search import router as search_router
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-PLACEHOLDER_API_KEYS = {"your_anthropic_api_key_here"}
+PLACEHOLDER_API_KEYS = {"your_gemini_api_key_here"}
 load_dotenv(BACKEND_DIR / ".env")
 
 # ---------------------------------------------------------------------------
@@ -68,12 +68,12 @@ def initialize_firebase() -> bool:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("SmartBuy AI backend starting...")
-    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
     api_key_set = bool(api_key) and api_key not in PLACEHOLDER_API_KEYS
     serpapi_key = os.getenv("SERPAPI_API_KEY", "").strip()
     serpapi_key_set = bool(serpapi_key) and serpapi_key != "your_serpapi_api_key_here"
     logger.info(
-        "Anthropic API key: %s",
+        "Gemini API key: %s",
         "SET" if api_key_set else "NOT CONFIGURED (rule-based fallback active)",
     )
     logger.info(
