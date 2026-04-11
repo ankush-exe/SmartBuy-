@@ -7,6 +7,4 @@ frontend/.env.local
 frontend/.env.production.local
 frontend/node_modules/
 frontend/dist/
-frontend/src/components/LocationPrompt.jsx
-frontend/src/hooks/useLocation.js
-frontend/src/hooks/useWishlist.js
+
