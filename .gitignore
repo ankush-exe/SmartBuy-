@@ -4,7 +4,6 @@ backend/.venv/
 backend/**/__pycache__/
 frontend/node_modules/
 frontend/dist/
-backend/app/services/delivery_service.py
 frontend/src/components/LocationPrompt.jsx
 frontend/src/hooks/useLocation.js
 frontend/src/hooks/useWishlist.js
