@@ -2,6 +2,9 @@ backend/.env
 backend/serviceAccountKey.json
 backend/.venv/
 backend/**/__pycache__/
+frontend/.env
+frontend/.env.local
+frontend/.env.production.local
 frontend/node_modules/
 frontend/dist/
 frontend/src/components/LocationPrompt.jsx

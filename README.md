@@ -96,10 +96,23 @@ Backend runs on `http://localhost:8000`.
 cd frontend
 
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
 Frontend runs on `http://localhost:3000`.
+
+Local frontend env:
+
+```bash
+VITE_API_URL=http://localhost:8000
+```
+
+Production frontend env on Vercel:
+
+```bash
+VITE_API_URL=https://smartbuy-production.up.railway.app
+```
 
 ## API
 
