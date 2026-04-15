@@ -126,7 +126,7 @@ def match_products(
 
     if not candidates:
         logger.info("Matched 0 products (top 0 selected) for query '%s'", query)
-        return []
+        return products[:10]
 
     price_values = [max(float(candidate.get("price", 0) or 0), 0.0) for candidate in candidates]
     min_price = min(price_values)
@@ -150,8 +150,13 @@ def match_products(
     )
 
     top = scored[:top_n]
-    logger.info("Matched %d products (top %d selected) for query '%s'", len(scored), len(top), query)
-    return [
+    matched_products = [
         {k: v for k, v in product.items() if k not in {"_token_overlap", "_word_overlap"}}
         for product in top
     ]
+
+    if not matched_products:
+        matched_products = products[:10]
+
+    logger.info("Matched %d products (top %d selected) for query '%s'", len(scored), len(top), query)
+    return matched_products
