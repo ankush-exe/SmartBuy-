@@ -46,7 +46,7 @@ export function useSearch() {
         headers.Authorization = `Bearer ${token}`
       }
 
-      const res = await fetch(`${API_BASE}/search`, {
+      const res = await fetch(`${API_BASE}/api/search`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ query: trimmedQuery }),
@@ -61,7 +61,7 @@ export function useSearch() {
       setResult(data)
 
       if (token) {
-        await fetch(`${API_BASE}/history`, {
+        await fetch(`${API_BASE}/api/history`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

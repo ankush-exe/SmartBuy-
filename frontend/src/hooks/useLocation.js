@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API_URL
 const LOCATION_PROMPT_EVENT = 'smartbuy:location-prompt'
 
 export function useLocation() {
@@ -18,7 +18,7 @@ export function useLocation() {
 
     try {
       const token = await currentUser.getIdToken()
-      const res = await fetch(`${API_BASE}/user/location`, {
+      const res = await fetch(`${API_BASE}/api/user/location`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) {
@@ -62,7 +62,7 @@ export function useLocation() {
     if (!currentUser || !trimmedCity) return
 
     const token = await currentUser.getIdToken()
-    const res = await fetch(`${API_BASE}/user/location`, {
+    const res = await fetch(`${API_BASE}/api/user/location`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

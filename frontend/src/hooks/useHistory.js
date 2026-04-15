@@ -14,7 +14,7 @@ export function useHistory() {
     setLoading(true)
     try {
       const token = await currentUser.getIdToken()
-      const res = await fetch(`${API_BASE}/history`, {
+      const res = await fetch(`${API_BASE}/api/history`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 

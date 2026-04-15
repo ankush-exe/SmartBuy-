@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API_URL
 
 export function useWishlist() {
   const { currentUser } = useAuth()
@@ -16,7 +16,7 @@ export function useWishlist() {
 
     try {
       const token = await currentUser.getIdToken()
-      const res = await fetch(`${API_BASE}/wishlist`, {
+      const res = await fetch(`${API_BASE}/api/wishlist`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) {
@@ -42,7 +42,7 @@ export function useWishlist() {
       const id = product.product_id
 
       if (wishlist.has(id)) {
-        const res = await fetch(`${API_BASE}/wishlist/${encodeURIComponent(id)}`, {
+        const res = await fetch(`${API_BASE}/api/wishlist/${encodeURIComponent(id)}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -55,7 +55,7 @@ export function useWishlist() {
           return next
         })
       } else {
-        const res = await fetch(`${API_BASE}/wishlist`, {
+        const res = await fetch(`${API_BASE}/api/wishlist`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

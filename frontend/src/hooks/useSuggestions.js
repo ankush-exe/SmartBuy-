@@ -33,7 +33,7 @@ export function useSuggestions(query, enabled) {
         }
 
         const response = await fetch(
-          `${API_BASE}/suggestions?${params.toString()}`,
+          `${API_BASE}/api/suggestions?${params.toString()}`,
           { headers, signal: controller.signal },
         )
 

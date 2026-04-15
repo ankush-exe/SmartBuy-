@@ -18,7 +18,7 @@ export function useFeed() {
     setLoading(true)
     try {
       const token = await currentUser.getIdToken()
-      const response = await fetch(`${API_BASE}/feed`, {
+      const response = await fetch(`${API_BASE}/api/feed`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
