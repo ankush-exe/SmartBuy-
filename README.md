@@ -84,6 +84,8 @@ cp .env.example .env
 # Optional:
 #   ANTHROPIC_API_KEY=...
 #   USD_TO_INR_RATE=92.40
+#   FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
+#   or GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 
 python run.py
 ```
@@ -192,6 +194,8 @@ Returns:
 
 - `backend/.env` is loaded automatically when the FastAPI app starts.
 - `SERPAPI_API_KEY` is the switch for live shopping search.
+- Firebase Admin can be configured with `FIREBASE_SERVICE_ACCOUNT_JSON` or `GOOGLE_APPLICATION_CREDENTIALS`.
+- For Railway or other hosted deploys, prefer `FIREBASE_SERVICE_ACCOUNT_JSON` because the service account file is not committed.
 - `SERPAPI_GL` defaults to `in`, so prices come back in the India market when available.
 - `USD_TO_INR_RATE` defaults to `92.40` and is mainly used for mock fallback products.
 - Local folders such as `backend/.venv`, `frontend/node_modules`, and `frontend/dist` are intentionally ignored rather than deleted.

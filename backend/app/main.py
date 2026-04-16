@@ -1,6 +1,7 @@
 """
 main.py - FastAPI application entry point for SmartBuy AI.
 """
+import json
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -31,11 +32,18 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Firebase
 # ---------------------------------------------------------------------------
-def initialize_firebase() -> bool:
+def _get_firebase_credentials():
+    service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
+    if service_account_json:
+        try:
+            return credentials.Certificate(json.loads(service_account_json))
+        except json.JSONDecodeError as exc:
+            logger.exception("Firebase Admin JSON env is invalid: %s", exc)
+            return None
+
     service_account_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
     if not service_account_path:
-        logger.info("Firebase Admin: NOT CONFIGURED (history + personalized suggestions disabled)")
-        return False
+        return None
 
     key_path = Path(service_account_path)
     if not key_path.is_absolute():
@@ -43,6 +51,18 @@ def initialize_firebase() -> bool:
 
     if not key_path.exists():
         logger.warning("Firebase Admin key not found at %s", key_path)
+        return None
+
+    return credentials.Certificate(str(key_path))
+
+
+def initialize_firebase() -> bool:
+    cred = _get_firebase_credentials()
+    if not cred:
+        logger.info(
+            "Firebase Admin: NOT CONFIGURED "
+            "(set FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS)"
+        )
         return False
 
     try:
@@ -53,7 +73,6 @@ def initialize_firebase() -> bool:
         pass
 
     try:
-        cred = credentials.Certificate(str(key_path))
         firebase_admin.initialize_app(cred)
         logger.info("Firebase Admin: INITIALIZED")
         return True
