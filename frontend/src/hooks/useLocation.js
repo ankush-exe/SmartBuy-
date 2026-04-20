@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
-
-const API_BASE = import.meta.env.VITE_API_URL
+import { API_BASE } from '../lib/apiBase'
 const LOCATION_PROMPT_EVENT = 'smartbuy:location-prompt'
 
 export function useLocation() {

@@ -9,6 +9,8 @@ export function useWishlist() {
   const [loading, setLoading] = useState(false)
 
   const fetchWishlist = useCallback(async () => {
+    console.log('Wishlist API_BASE', API_BASE)
+
     if (!currentUser) {
       setWishlist(new Set())
       return

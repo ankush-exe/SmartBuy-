@@ -15,10 +15,12 @@ from pydantic import BaseModel, field_validator
 
 from app.services.currency import DEFAULT_CURRENCY, get_usd_to_inr_rate
 from app.services.delivery_service import estimate_delivery
+from app.services.fallback import get_fallback_products
 from app.services.normalizer import normalize_products
 from app.services.matcher import match_products
 from app.services.ai_agent import run_ai_decision
 from app.services.shopping_search import (
+    derive_title_suggestions,
     get_autocomplete_suggestions,
     search_google_shopping,
 )
@@ -313,6 +315,11 @@ async def suggestions(
     autocomplete_result = await get_autocomplete_suggestions(query, limit=limit)
     live_suggestions = autocomplete_result["suggestions"]
     suggestion_source = autocomplete_result["source"]
+    if not live_suggestions:
+        fallback_products = get_fallback_products(query)
+        live_suggestions = derive_title_suggestions(query, fallback_products, limit=limit)
+        if live_suggestions:
+            suggestion_source = "mock"
 
     merged = []
     seen = set()
@@ -522,10 +529,12 @@ async def search(
     )
 
     if not raw_products:
-        raise HTTPException(
-            status_code=503,
-            detail=search_result.get("error") or "Live product search is currently unavailable.",
+        logger.info(
+            "Falling back to mock catalog for query '%s' because live search returned no products.",
+            query,
         )
+        raw_products = get_fallback_products(query)
+        data_source = "mock"
 
     # ── Step 3: Normalize ────────────────────────────────────────────────────
     normalized = normalize_products(raw_products)

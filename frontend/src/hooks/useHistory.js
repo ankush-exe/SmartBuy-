@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
-
-const API_BASE = import.meta.env.VITE_API_URL
+import { API_BASE } from '../lib/apiBase'
 
 export function useHistory() {
   const { currentUser } = useAuth()

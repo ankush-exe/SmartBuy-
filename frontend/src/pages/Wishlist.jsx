@@ -3,6 +3,8 @@ import { ExternalLink, Heart, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useWishlist } from '../hooks/useWishlist'
 
+const API_BASE = import.meta.env.VITE_API_URL
+
 const formatPrice = (amount, currency = 'INR') =>
   new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -17,6 +19,8 @@ export default function Wishlist() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('Wishlist API_BASE', API_BASE)
+
     if (!currentUser) {
       setItems([])
       setLoading(false)
@@ -26,7 +30,7 @@ export default function Wishlist() {
     ;(async () => {
       try {
         const token = await currentUser.getIdToken()
-        const res = await fetch('/api/wishlist', {
+        const res = await fetch(`${API_BASE}/api/wishlist`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         const data = await res.json()
