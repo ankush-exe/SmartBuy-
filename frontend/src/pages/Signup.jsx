@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, AlertTriangle, ArrowRight, UserPlus } from 'lucide-react';
+import { Mail, Lock, AlertTriangle, Eye, EyeOff, UserPlus } from 'lucide-react';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
@@ -79,13 +81,26 @@ export default function Signup() {
                   <Lock className="w-5 h-5 text-text-muted opacity-60" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
+                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl py-3 pl-11 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-text-muted transition-colors hover:text-white"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -96,13 +111,26 @@ export default function Signup() {
                   <Lock className="w-5 h-5 text-text-muted opacity-60" />
                 </div>
                 <input
-                  type="password"
+                  type={showPasswordConfirm ? 'text' : 'password'}
                   required
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
+                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl py-3 pl-11 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordConfirm((value) => !value)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-text-muted transition-colors hover:text-white"
+                  aria-label={showPasswordConfirm ? 'Hide confirm password' : 'Show confirm password'}
+                  title={showPasswordConfirm ? 'Hide confirm password' : 'Show confirm password'}
+                >
+                  {showPasswordConfirm ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 
