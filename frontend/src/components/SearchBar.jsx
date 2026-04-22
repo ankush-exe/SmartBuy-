@@ -80,14 +80,14 @@ export default function SearchBar({ onSearch, loading }) {
     <div className="relative w-full max-w-2xl mx-auto">
       <form onSubmit={handleSubmit}>
         <div className={`
-          relative flex items-center rounded-2xl border transition-all duration-300
+          relative flex min-w-0 items-center rounded-2xl border transition-colors duration-300
           ${focused
             ? 'border-accent bg-surface shadow-glow-accent'
             : 'border-border bg-void hover:border-text-muted'
           }
         `}>
           {/* Icon */}
-          <div className="pl-5 pr-3 flex-shrink-0">
+          <div className="pl-3 pr-2 flex-shrink-0 sm:pl-5 sm:pr-3">
             {loading ? (
               <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
             ) : (
@@ -107,7 +107,7 @@ export default function SearchBar({ onSearch, loading }) {
             placeholder="Search any product online…"
             disabled={loading}
             className="
-              flex-1 py-4 bg-transparent text-text-primary placeholder-text-muted
+              min-w-0 flex-1 py-4 bg-transparent text-text-primary placeholder-text-muted
               font-body text-base outline-none disabled:opacity-60
             "
           />
@@ -125,14 +125,16 @@ export default function SearchBar({ onSearch, loading }) {
             type="submit"
             disabled={loading || !query.trim()}
             className="
-              flex-shrink-0 mr-2 px-5 py-2.5 rounded-xl font-display font-semibold text-sm
+              mr-2 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl font-display font-semibold text-sm
               bg-accent text-white
-              hover:bg-accent-glow active:scale-95
+              hover:bg-accent-glow active:bg-accent-glow
               disabled:opacity-40 disabled:cursor-not-allowed
-              transition-all duration-200
+              transition-colors duration-200 sm:w-auto sm:px-5
             "
+            aria-label={loading ? 'Searching' : 'Search'}
           >
-            {loading ? 'Searching…' : 'Search'}
+            <Search size={18} className="sm:hidden" />
+            <span className="hidden sm:inline">{loading ? 'Searching...' : 'Search'}</span>
           </button>
         </div>
       </form>

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { AlertTriangle, FilterX } from 'lucide-react'
+import { AlertTriangle, FilterX, SlidersHorizontal, X } from 'lucide-react'
 import { useSearch } from '../hooks/useSearch'
 import { useAuth } from '../context/AuthContext'
 import { useLocation } from '../hooks/useLocation'
@@ -20,6 +20,7 @@ export default function Home() {
   const { search, loading, result, error } = useSearch()
   const [recentSearchRefreshKey, setRecentSearchRefreshKey] = useState(0)
   const [lastQuery, setLastQuery] = useState('')
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   
   const isMockSource = result && ['mock', 'fallback'].includes(result.data_source)
   const sourceLabel = isMockSource
@@ -63,6 +64,7 @@ export default function Home() {
   useEffect(() => {
     if (availableSources.length > 0) {
       resetFilters(availableSources)
+      setMobileFiltersOpen(false)
     }
   }, [result]) // reset when new result comes
 
@@ -203,9 +205,20 @@ export default function Home() {
               </span>
             </div>
 
+            <div className="lg:hidden">
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen((value) => !value)}
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-medium text-text-secondary transition-colors hover:border-accent/50 hover:text-text-primary"
+              >
+                {mobileFiltersOpen ? <X size={16} /> : <SlidersHorizontal size={16} />}
+                {mobileFiltersOpen ? 'Hide filters' : 'Filters and sort'}
+              </button>
+            </div>
+
             <div className="flex flex-col lg:flex-row gap-8 items-start">
               {/* Left Sidebar (Filters) */}
-              <div className="w-full lg:w-64 flex-shrink-0">
+              <div className={`${mobileFiltersOpen ? 'block' : 'hidden'} w-full flex-shrink-0 lg:block lg:w-64`}>
                 <FilterSidebar 
                   filters={filters}
                   sort={sortOrder}
@@ -256,7 +269,7 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4">
                     <p className="text-xs text-text-muted font-mono uppercase tracking-wider flex items-center gap-2">
                       <span className="inline-block w-4 h-px bg-border" />
-                      Ranked Alternatives ({filteredAlternatives.length})
+                      More Results ({filteredAlternatives.length})
                     </p>
                     <span className="text-xs text-text-muted font-mono">
                       Showing {filteredAlternatives.length} of {result.results.length}
